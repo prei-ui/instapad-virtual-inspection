@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Inspection — Instapad Offer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1f3d; --navy-mid: #1a3260; --navy-light: #243d72;
+    --orange: #f5820a; --orange-light: #ffa040; --orange-pale: #fff8f0;
+    --cream: #faf8f4; --white: #ffffff;
+    --blue: #1d4ed8; --blue-bg: #eff6ff; --blue-border: #bfdbfe;
+    --green: #1a7a4a; --green-bg: #f0faf4; --green-border: #a8dfc0;
+    --text: #1a1a2e; --text-muted: #5a6a8a; --border: #e2e8f0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
+  .site-header { background:var(--navy); padding:0 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 20px rgba(15,31,61,0.3); }
+  .site-header::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; background:linear-gradient(90deg,#FC7F2A,#B875EC,#71B5EF,#3957E3,#0E1F6C); }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .logo-wrap { display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .logo-icon { width:36px; height:36px; }
+  .logo-text { font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px; font-family:'DM Sans',sans-serif; }
+  .logo-text span { color:var(--orange); }
+  .header-badge { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; font-family:'DM Mono',monospace; color:rgba(255,255,255,0.45); padding:4px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:20px; }
+  .hero { background:linear-gradient(135deg,#0f1f3d 0%,#1a3260 60%,#0f1f3d 100%); padding:48px 32px 40px; text-align:center; position:relative; overflow:hidden; }
+  .hero::after { content:''; position:absolute; bottom:-60px;left:50%; transform:translateX(-50%); width:600px;height:200px; border-radius:50%; background:radial-gradient(ellipse,rgba(245,130,10,0.08),transparent 70%); pointer-events:none; }
+  .hero-eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--orange); font-family:'DM Mono',monospace; background:rgba(245,130,10,0.12); border:1px solid rgba(245,130,10,0.25); padding:5px 14px; border-radius:20px; margin-bottom:16px; }
+  .hero-title { font-size:32px; font-weight:800; color:var(--white); letter-spacing:-0.8px; line-height:1.15; margin-bottom:12px; }
+  .hero-title span { color:var(--orange); }
+  .hero-sub { font-size:15px; color:rgba(255,255,255,0.55); line-height:1.7; max-width:520px; margin:0 auto 24px; }
+  .hero-deadline { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:10px 18px; font-size:13px; color:rgba(255,255,255,0.8); font-weight:600; }
+  .hero-deadline strong { color:var(--orange-light); }
+  .tabs-wrap { background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:64px; z-index:90; box-shadow:0 2px 8px rgba(15,31,61,0.05); }
+  .tabs { display:flex; max-width:800px; margin:0 auto; padding:0 32px; }
+  .tab-btn { padding:16px 24px; font-size:13.5px; font-weight:600; color:var(--text-muted); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  .tab-btn:hover { color:var(--navy); }
+  .tab-btn.active { color:var(--orange); border-bottom-color:var(--orange); }
+  .tab-num { width:20px;height:20px; border-radius:50%; font-size:10px; font-weight:700; font-family:'DM Mono',monospace; display:flex;align-items:center;justify-content:center; background:var(--border); color:var(--text-muted); transition:all 0.2s; }
+  .tab-btn.active .tab-num { background:var(--orange); color:var(--white); }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+  .page-body { max-width:800px; margin:0 auto; padding:40px 32px 80px; }
+  .section-eyebrow { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .eyebrow-line { width:28px;height:2px; background:var(--orange); border-radius:2px; flex-shrink:0; }
+  .eyebrow-text { font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--orange); font-family:'DM Mono',monospace; }
+  .section-headline { font-size:22px; font-weight:700; color:var(--navy); letter-spacing:-0.4px; margin-bottom:6px; }
+  .section-sub { font-size:14px; color:var(--text-muted); line-height:1.7; margin-bottom:20px; }
+  .divider { height:1px; background:var(--border); margin:28px 0; }
+  .card { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:24px 28px; box-shadow:0 2px 8px rgba(15,31,61,0.04); margin-bottom:16px; }
+  .step-card { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(15,31,61,0.04); margin-bottom:12px; }
+  .step-header { display:flex; align-items:center; gap:14px; padding:16px 22px; background:linear-gradient(90deg,#f8fafc,var(--white)); border-bottom:1px solid var(--border); }
+  .step-num { width:34px;height:34px; border-radius:50%; background:var(--navy); color:var(--orange); font-size:13px; font-weight:800; font-family:'DM Mono',monospace; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+  .step-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); font-family:'DM Mono',monospace; margin-bottom:2px; }
+  .step-title { font-size:15px; font-weight:700; color:var(--navy); }
+  .step-body { padding:20px 22px; display:flex; flex-direction:column; gap:12px; }
+  .step-desc { font-size:13.5px; color:#374151; line-height:1.75; }
+  .rules-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .rule-item { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border-radius:10px; font-size:13px; line-height:1.55; }
+  .rule-item.do { background:var(--green-bg); border:1px solid var(--green-border); color:#14532d; }
+  .rule-item.dont { background:var(--orange-pale); border:1px solid #fde8c8; color:#4a3520; }
+  .rule-icon { font-size:14px; flex-shrink:0; margin-top:1px; }
+  .checklist-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .checklist-group { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .checklist-group-header { background:var(--navy); padding:10px 16px; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); font-family:'DM Mono',monospace; }
+  .checklist-items { padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
+  .checklist-item { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text); line-height:1.5; }
+  .check-dot { width:18px;height:18px; border-radius:50%; background:var(--orange-pale); border:1.5px solid var(--orange); display:flex;align-items:center;justify-content:center; flex-shrink:0; margin-top:1px; }
+  .check-dot::after { content:'✓'; font-size:9px; color:var(--orange); font-weight:700; }
+  .photos-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .photo-card { border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .photo-label { background:var(--navy); padding:8px 12px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--white); font-family:'DM Mono',monospace; }
+  .photo-card img { width:100%; height:160px; object-fit:cover; display:block; }
+  .note { display:flex; align-items:flex-start; gap:10px; border-radius:10px; padding:13px 16px; font-size:13px; line-height:1.65; }
+  .note.amber { background:#fffbeb; border:1px solid #fde68a; color:#4a3520; }
+  .note.navy { background:var(--navy); border:1px solid var(--navy-mid); color:rgba(255,255,255,0.75); }
+  .note.blue { background:var(--blue-bg); border:1px solid var(--blue-border); color:#1e3a5f; }
+  .note-icon { font-size:16px; flex-shrink:0; }
+  .gp-steps { display:flex; flex-direction:column; gap:8px; }
+  .gp-step { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; background:#f8fafc; border:1px solid var(--border); border-radius:10px; }
+  .gp-step-num { width:26px;height:26px; border-radius:50%; background:var(--orange); color:var(--white); font-size:11px; font-weight:700; font-family:'DM Mono',monospace; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+  .gp-step-text { font-size:13px; color:var(--text); line-height:1.6; padding-top:3px; }
+  .gp-step-text code { background:var(--border); padding:1px 6px; border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; color:var(--navy); }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .example-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:var(--orange); color:var(--white); text-decoration:none; font-size:13px; font-weight:700; border-radius:8px; transition:background 0.15s; font-family:'DM Sans',sans-serif; }
+  .example-btn:hover { background:#e07008; }
+  .tutorial-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:var(--navy); color:var(--white); text-decoration:none; font-size:13px; font-weight:700; border-radius:8px; transition:background 0.15s; font-family:'DM Sans',sans-serif; }
+  .tutorial-btn:hover { background:var(--navy-mid); }
+  .submit-hero { background:linear-gradient(135deg,#0f1f3d,#1a3260); border-radius:16px; padding:32px 36px; margin-bottom:24px; position:relative; overflow:hidden; }
+  .submit-hero::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; background:linear-gradient(90deg,var(--orange),var(--orange-light),transparent); }
+  .submit-hero-title { font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.4px; margin-bottom:8px; }
+  .submit-hero-sub { font-size:13.5px; color:rgba(255,255,255,0.55); line-height:1.7; max-width:540px; }
+  .form-section { background:var(--white); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(15,31,61,0.04); margin-bottom:16px; }
+  .form-section-header { background:linear-gradient(90deg,#f8fafc,var(--white)); border-bottom:1px solid var(--border); padding:16px 24px; font-size:13px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:10px; }
+  .form-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+  .field-group { display:flex; flex-direction:column; gap:6px; }
+  .field-label { font-size:12px; font-weight:600; color:var(--navy); letter-spacing:0.3px; }
+  .field-label span { color:var(--orange); }
+  .field-input,.field-textarea { width:100%; padding:12px 16px; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); background:#fafbfc; transition:border-color 0.15s,box-shadow 0.15s; outline:none; }
+  .field-input:focus,.field-textarea:focus { border-color:var(--orange); background:var(--white); box-shadow:0 0 0 3px rgba(245,130,10,0.1); }
+  .field-textarea { min-height:80px; resize:vertical; line-height:1.6; }
+  .field-hint { font-size:11.5px; color:var(--text-muted); line-height:1.5; }
+  .field-hint a { color:var(--orange); text-decoration:underline; }
+  .confirm-list { display:flex; flex-direction:column; gap:8px; }
+  .confirm-item { display:flex; align-items:flex-start; gap:12px; padding:10px 14px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:border-color 0.15s; }
+  .confirm-item:hover { border-color:rgba(245,130,10,0.3); }
+  .confirm-item.checked { background:var(--green-bg); border-color:var(--green-border); }
+  .confirm-checkbox { width:20px;height:20px; border:2px solid var(--border); border-radius:5px; background:var(--white); flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; color:var(--green); font-weight:700; transition:all 0.15s; margin-top:1px; }
+  .confirm-item.checked .confirm-checkbox { background:var(--green); border-color:var(--green); color:var(--white); }
+  .confirm-text { font-size:13px; color:var(--text); line-height:1.55; padding-top:1px; }
+  .submit-btn { width:100%; padding:16px; background:var(--orange); color:var(--white); font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; border:none; border-radius:12px; cursor:pointer; letter-spacing:0.3px; transition:background 0.15s,transform 0.1s; margin-top:8px; }
+  .submit-btn:hover { background:#e07008; }
+  .submit-btn:active { transform:scale(0.99); }
+  .success-state { display:none; text-align:center; padding:60px 32px; }
+  .success-icon { font-size:56px; margin-bottom:20px; }
+  .success-title { font-size:24px; font-weight:700; color:var(--navy); margin-bottom:8px; }
+  .success-sub { font-size:14px; color:var(--text-muted); line-height:1.7; max-width:480px; margin:0 auto; }
+  .site-footer { background:var(--navy); padding:20px 32px; text-align:center; font-size:12px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace; }
+  @media(max-width:600px) {
+    .page-body { padding:24px 20px 60px; }
+    .hero { padding:32px 20px 28px; }
+    .hero-title { font-size:24px; }
+    .rules-grid,.checklist-grid,.photos-grid { grid-template-columns:1fr; }
+    .tabs { padding:0 16px; }
+    .tab-btn { padding:14px 16px; font-size:12.5px; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="logo-wrap">
+      <svg class="logo-icon" viewBox="0 0 44 44" fill="none">
+        <rect width="44" height="44" rx="10" fill="#1a3260"/>
+        <path d="M22 8 L32 20 H25 L28 36 L12 22 H19 L22 8Z" fill="url(#logoGradVI)"/>
+        <defs>
+          <linearGradient id="logoGradVI" x1="12" y1="8" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#f5820a"/>
+            <stop offset="50%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#3b82f6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-text"><span>insta</span>pad</span>
+    </a>
+    <span class="header-badge">Virtual Inspection</span>
+  </div>
+</header>
+<div class="hero">
+  <div class="hero-eyebrow">📸 Photo Submission Required</div>
+  <h1 class="hero-title">Virtual Home <span>Inspection</span></h1>
+  <p class="hero-sub">No appointment needed. Follow the photo checklist, record a quick walkthrough video, and submit your album link. We will take it from there.</p>
+  <div class="hero-deadline">Please submit within <strong>3 business days</strong> of receiving this link</div>
+</div>
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" id="btn-instructions" onclick="switchTab('instructions')">
+      <span class="tab-num">1</span> Instructions
+    </button>
+    <button class="tab-btn" id="btn-submit" onclick="switchTab('submit')">
+      <span class="tab-num">2</span> Submit Photos
+    </button>
+  </div>
+</div>
+<div class="tab-content active" id="tab-instructions">
+  <div class="page-body">
+    <div class="section-eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Step 1</span></div>
+    <h2 class="section-headline">Take Your Photos and Video</h2>
+    <p class="section-sub">Follow these rules for every photo and your video walkthrough. Quality and framing matter — poor lighting or blurry photos may require a reshoot.</p>
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-num">📷</div>
+        <div>
+          <div class="step-label">Photo Rules</div>
+          <div class="step-title">2–4 photos per room, landscape orientation</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-desc">Take <strong>2–4 photos per room</strong> and keep every photo in <strong>landscape orientation</strong> (horizontal, not vertical). Stand back so we can see the full space — wide angle or 0.5x zoom is ideal.</p>
+        <div class="rules-grid">
+          <div class="rule-item do"><span class="rule-icon">✅</span>Landscape / horizontal orientation</div>
+          <div class="rule-item dont"><span class="rule-icon">❌</span>Portrait / vertical photos</div>
+          <div class="rule-item do"><span class="rule-icon">✅</span>Good lighting — open blinds, turn on lights</div>
+          <div class="rule-item dont"><span class="rule-icon">❌</span>Dark, blurry, or overexposed shots</div>
+          <div class="rule-item do"><span class="rule-icon">✅</span>Wide angle — show the full room</div>
+          <div class="rule-item dont"><span class="rule-icon">❌</span>Close-up shots that cut off the space</div>
+          <div class="rule-item do"><span class="rule-icon">✅</span>Daylight preferred for exterior shots</div>
+          <div class="rule-item dont"><span class="rule-icon">❌</span>No need to clean or stage — just clear visibility</div>
+        </div>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-num">🎥</div>
+        <div>
+          <div class="step-label">Video Walkthrough — Required</div>
+          <div class="step-title">One continuous video, inside and outside</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-desc">Record a <strong>steady, continuous walkthrough video</strong> with good lighting. This is in addition to your photos — not a replacement for them.</p>
+        <div class="note amber">
+          <span class="note-icon">📋</span>
+          <div><strong>How to record it:</strong> Start outside with a full exterior walk-around (front, both sides, back), then walk through every room inside — living areas, kitchen, bedrooms, bathrooms, hallways, laundry, and any bonus spaces. Move slowly and pan the camera so we can clearly see walls, ceilings, floors, and any visible damage or repairs.</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Reference</span></div>
+    <h2 class="section-headline">Example Photos</h2>
+    <p class="section-sub">Use these as a reference for framing and angle — this is the level of clarity and coverage we are looking for.</p>
+    <div class="photos-grid" style="margin-bottom:16px;">
+      <div class="photo-card">
+        <div class="photo-label">Front of Home</div>
+        <img src="https://i.imgur.com/8yh5IVE.jpeg" alt="Front of Home">
+      </div>
+      <div class="photo-card">
+        <div class="photo-label">Back of Home</div>
+        <img src="https://i.imgur.com/ZEOxRH4.jpeg" alt="Back of Home">
+      </div>
+      <div class="photo-card">
+        <div class="photo-label">Kitchen</div>
+        <img src="https://i.imgur.com/S5UgPEf.jpeg" alt="Kitchen">
+      </div>
+      <div class="photo-card">
+        <div class="photo-label">Common Area</div>
+        <img src="https://i.imgur.com/oC7kvui.jpeg" alt="Common Area">
+      </div>
+    </div>
+    <div class="btn-row" style="margin-bottom:0;">
+      <a href="https://photos.app.goo.gl/XHPsTpTMEJH45nWa8" target="_blank" class="example-btn">📂 View Full Example Album</a>
+    </div>
+    <div class="divider"></div>
+    <div class="section-eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Step 2</span></div>
+    <h2 class="section-headline">What to Capture</h2>
+    <p class="section-sub">Make sure you have photos covering every area below before moving to the album step.</p>
+    <div class="checklist-grid" style="margin-bottom:0;">
+      <div class="checklist-group">
+        <div class="checklist-group-header">🏠 Interior</div>
+        <div class="checklist-items">
+          <div class="checklist-item"><div class="check-dot"></div>Each bedroom (2–4 photos each)</div>
+          <div class="checklist-item"><div class="check-dot"></div>Each bathroom (2–4 photos each)</div>
+          <div class="checklist-item"><div class="check-dot"></div>Kitchen (2–4 photos)</div>
+          <div class="checklist-item"><div class="check-dot"></div>Living room / main living area</div>
+          <div class="checklist-item"><div class="check-dot"></div>Basement / garage (if applicable)</div>
+          <div class="checklist-item"><div class="check-dot"></div>Laundry / hallways / bonus spaces</div>
+        </div>
+      </div>
+      <div class="checklist-group">
+        <div class="checklist-group-header">🌳 Exterior + Neighborhood</div>
+        <div class="checklist-items">
+          <div class="checklist-item"><div class="check-dot"></div>Front of home</div>
+          <div class="checklist-item"><div class="check-dot"></div>Back of home</div>
+          <div class="checklist-item"><div class="check-dot"></div>Both sides (if accessible)</div>
+          <div class="checklist-item"><div class="check-dot"></div>Street view: left and right from driveway</div>
+          <div class="checklist-item"><div class="check-dot"></div>Across the street (if safe)</div>
+          <div class="checklist-item"><div class="check-dot"></div>Backyard / fence / driveway</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Step 3</span></div>
+    <h2 class="section-headline">Create a Google Photos Album</h2>
+    <p class="section-sub">We use Google Photos for photo collection. Follow these steps to create your album and get a shareable link.</p>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="gp-steps">
+        <div class="gp-step"><div class="gp-step-num">1</div><div class="gp-step-text">Open <strong>Google Photos</strong> on your phone or computer</div></div>
+        <div class="gp-step"><div class="gp-step-num">2</div><div class="gp-step-text">Tap <code>Library</code> then <code>Albums</code> then <code>New Album</code></div></div>
+        <div class="gp-step"><div class="gp-step-num">3</div><div class="gp-step-text">Name the album — suggested: <strong>123 Main St – Virtual Inspection</strong></div></div>
+        <div class="gp-step"><div class="gp-step-num">4</div><div class="gp-step-text">Add all your photos <strong>and your walkthrough video</strong> to the album</div></div>
+        <div class="gp-step"><div class="gp-step-num">5</div><div class="gp-step-text">Tap <code>Share</code> then <code>Create link</code> then <code>Copy link</code></div></div>
+        <div class="gp-step"><div class="gp-step-num">6</div><div class="gp-step-text">Head to the <strong>Submit Photos</strong> tab and paste your link — you are done!</div></div>
+      </div>
+    </div>
+    <div class="btn-row" style="margin-bottom:16px;">
+      <a href="https://youtu.be/LITYaGO_JZE?si=kQBWUyBQ4n8RZpTG" target="_blank" class="tutorial-btn">▶ Watch the Tutorial</a>
+    </div>
+    <div class="note blue" style="margin-bottom:16px;">
+      <span class="note-icon">💡</span>
+      <div>Do not have Google Photos? A <strong>Google Drive folder link</strong> works too — just make sure sharing is set to "Anyone with the link can view."</div>
+    </div>
+    <div class="note navy">
+      <span class="note-icon">✅</span>
+      <div>Ready? Head to the <strong style="color:var(--orange-light);">Submit Photos</strong> tab to paste your link and complete the inspection.</div>
+    </div>
+  </div>
+</div>
+<div class="tab-content" id="tab-submit">
+  <div class="page-body">
+    <div class="submit-hero">
+      <div class="submit-hero-title">Submit Your Photo Album</div>
+      <div class="submit-hero-sub">Paste your Google Photos album link below. Before submitting, confirm you have covered all the required areas using the checklist.</div>
+    </div>
+    <div id="form-wrap">
+      <div class="form-section">
+        <div class="form-section-header">📎 Your Information and Album Link</div>
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label" for="seller-name">Full Name <span>*</span></label>
+            <input class="field-input" type="text" id="seller-name" placeholder="Jane Smith">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="phone">Phone Number <span>*</span></label>
+            <input class="field-input" type="tel" id="phone" placeholder="(404) 555-0123" maxlength="14">
+            <span class="field-hint">We will format this automatically as (XXX) XXX-XXXX</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="email">Email Address <span>*</span></label>
+            <input class="field-input" type="email" id="email" placeholder="jane@email.com">
+          </div>
+          <div class="field-group" style="position:relative;">
+            <label class="field-label" for="address-input">Property Address <span>*</span></label>
+            <input class="field-input" type="text" id="address-input" placeholder="Start typing your address..." autocomplete="off">
+            <input type="hidden" id="address-formatted">
+            <span class="field-hint" id="address-hint" style="display:none;color:var(--green);font-weight:600;">✓ Address confirmed</span>
+            <span class="field-hint" id="address-hint-default">Select your address from the dropdown — we will format it to match Zillow.</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="album-link">Google Photos Album Link <span>*</span></label>
+            <input class="field-input" type="url" id="album-link" placeholder="https://photos.app.goo.gl/...">
+            <span class="field-hint">From your album, tap Share then Create link then Copy link. <a href="https://youtu.be/LITYaGO_JZE?si=kQBWUyBQ4n8RZpTG" target="_blank">Watch tutorial</a></span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="notes">Anything else we should know? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+            <textarea class="field-textarea" id="notes" placeholder="e.g. Some rooms have limited lighting, gate code needed for backyard access, etc."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-header">✅ Before You Submit</div>
+        <div class="form-body">
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:4px;">Please confirm the following before submitting:</p>
+          <div class="confirm-list">
+            <div class="confirm-item" onclick="toggleCheck(this)"><div class="confirm-checkbox"></div><div class="confirm-text">I have photos of every bedroom and bathroom (2–4 each)</div></div>
+            <div class="confirm-item" onclick="toggleCheck(this)"><div class="confirm-checkbox"></div><div class="confirm-text">I have photos of the kitchen and main living area</div></div>
+            <div class="confirm-item" onclick="toggleCheck(this)"><div class="confirm-checkbox"></div><div class="confirm-text">I have exterior photos — front, back, both sides, and street view</div></div>
+            <div class="confirm-item" onclick="toggleCheck(this)"><div class="confirm-checkbox"></div><div class="confirm-text">I have recorded a video walkthrough covering interior and exterior</div></div>
+            <div class="confirm-item" onclick="toggleCheck(this)"><div class="confirm-checkbox"></div><div class="confirm-text">All photos are landscape (horizontal) with good lighting</div></div>
+            <div class="confirm-item" onclick="toggleCheck(this)"><div class="confirm-checkbox"></div><div class="confirm-text">My album link is set to "Anyone with the link can view"</div></div>
+          </div>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="handleSubmit()">Submit Photo Album →</button>
+      <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:12px;line-height:1.6;">
+        Having trouble? Reply to the email you received or contact us at <strong>contract@instapadoffer.com</strong>
+      </p>
+    </div>
+    <div class="success-state" id="success-state">
+      <div class="success-icon">🏠</div>
+      <div class="success-title">Submission Received!</div>
+      <p class="success-sub">Thank you — your photo album has been submitted. Our team will be in touch soon. If we have any questions or need anything else, we will reach out directly.</p>
+      <div style="margin-top:24px;padding:16px 20px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;display:inline-block;">
+        <p style="font-size:13px;color:var(--green);font-weight:600;line-height:1.5;">✓ Keep an eye on <strong>contract@instapadoffer.com</strong> for any follow-up from our team.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="site-footer">
+  Instapad Offer · <a href="https://instapadoffer.com" style="color:rgba(255,255,255,0.4);text-decoration:none;">instapadoffer.com</a> · contract@instapadoffer.com
+</footer>
+<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_MAPS_API_KEY_PLACEHOLDER&libraries=places&callback=initAutocomplete" async defer></script>
+<script>
+  var addressConfirmed = false;
+  function initAutocomplete() {
+    var input = document.getElementById('address-input');
+    if (!input) return;
+    var autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' },
+      fields: ['address_components']
+    });
+    autocomplete.addListener('place_changed', function() {
+      var place = autocomplete.getPlace();
+      var formatted = buildZillowAddress(place.address_components);
+      if (formatted) {
+        document.getElementById('address-formatted').value = formatted;
+        document.getElementById('address-input').value = formatted;
+        document.getElementById('address-hint').style.display = 'block';
+        document.getElementById('address-hint-default').style.display = 'none';
+        addressConfirmed = true;
+      }
+    });
+    input.addEventListener('input', function() {
+      addressConfirmed = false;
+      document.getElementById('address-formatted').value = '';
+      document.getElementById('address-hint').style.display = 'none';
+      document.getElementById('address-hint-default').style.display = 'block';
+    });
+  }
+  function buildZillowAddress(components) {
+    if (!components) return null;
+    function get(types) {
+      var c = components.find(function(c) { return types.every(function(t) { return c.types.indexOf(t) !== -1; }); });
+      return c ? c.short_name : '';
+    }
+    var streetNum = get(['street_number']);
+    var route = get(['route']);
+    var unit = get(['subpremise']);
+    var city = get(['locality']) || get(['sublocality_level_1']);
+    var state = get(['administrative_area_level_1']);
+    var zip = get(['postal_code']);
+    if (!streetNum || !route || !city || !state || !zip) return null;
+    var street = unit ? streetNum + ' ' + route + ' ' + unit : streetNum + ' ' + route;
+    return street + ', ' + city + ', ' + state + ' ' + zip;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    var phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function(e) {
+        var digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+        var formatted = '';
+        if (digits.length > 0) formatted = '(' + digits.slice(0, 3);
+        if (digits.length >= 4) formatted += ') ' + digits.slice(3, 6);
+        if (digits.length >= 7) formatted += '-' + digits.slice(6, 10);
+        e.target.value = formatted;
+      });
+    }
+  });
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('btn-' + tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+    var box = el.querySelector('.confirm-checkbox');
+    box.textContent = el.classList.contains('checked') ? '✓' : '';
+  }
+  async function handleSubmit() {
+    var name = document.getElementById('seller-name').value.trim();
+    var phone = document.getElementById('phone').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var address = document.getElementById('address-formatted').value.trim() || document.getElementById('address-input').value.trim();
+    var link = document.getElementById('album-link').value.trim();
+    var notes = document.getElementById('notes').value.trim();
+    if (!name) { alert('Please enter your full name.'); return; }
+    if (!phone || phone.replace(/[^0-9]/g, '').length < 10) { alert('Please enter a valid 10-digit phone number.'); return; }
+    if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) { alert('Please enter a valid email address.'); return; }
+    if (!address) { alert('Please select your property address from the dropdown.'); return; }
+    if (!addressConfirmed) {
+      var proceed = confirm('We could not verify your address with Google Maps — it may not match Zillow exactly. Proceed anyway?');
+      if (!proceed) return;
+    }
+    if (!link || link.indexOf('http') !== 0) { alert('Please paste a valid Google Photos album link.'); return; }
+    var btn = document.querySelector('.submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    var payload = {
+      seller_name: name,
+      phone: phone,
+      email: email,
+      property_address: address,
+      album_link: link,
+      notes: notes || '',
+      submitted_at: new Date().toISOString()
+    };
+    try {
+      await fetch('https://hooks.zapier.com/hooks/catch/11371221/un48lx2/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('success-state').style.display = 'block';
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'Submit Photo Album →';
+      alert('Something went wrong — please try again or email contract@instapadoffer.com');
+    }
+  }
+</script>
+</body>
+</html>
