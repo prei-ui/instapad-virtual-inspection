@@ -460,7 +460,8 @@
     try {
       await fetch('https://hooks.zapier.com/hooks/catch/11371221/un48lx2/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(payload)
       });
       document.getElementById('form-wrap').style.display = 'none';
