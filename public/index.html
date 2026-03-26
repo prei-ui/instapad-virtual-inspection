@@ -359,9 +359,10 @@
 <footer class="site-footer">
   Instapad Offer · <a href="https://instapadoffer.com" style="color:rgba(255,255,255,0.4);text-decoration:none;">instapadoffer.com</a> · contract@instapadoffer.com
 </footer>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOX76ssZ9O8NLQt2dlfl89uzOTsfQQCVk&libraries=places&callback=initAutocomplete" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=REPLACE_WITH_YOUR_KEY&libraries=places&callback=initAutocomplete" async defer></script>
 <script>
   var addressConfirmed = false;
+
   function initAutocomplete() {
     var input = document.getElementById('address-input');
     if (!input) return;
@@ -379,6 +380,7 @@
         document.getElementById('address-hint').style.display = 'block';
         document.getElementById('address-hint-default').style.display = 'none';
         addressConfirmed = true;
+        saveForm();
       }
     });
     input.addEventListener('input', function() {
@@ -388,6 +390,7 @@
       document.getElementById('address-hint-default').style.display = 'block';
     });
   }
+
   function buildZillowAddress(components) {
     if (!components) return null;
     function get(types) {
@@ -395,15 +398,136 @@
       return c ? c.short_name : '';
     }
     var streetNum = get(['street_number']);
-    var route = get(['route']);
-    var unit = get(['subpremise']);
-    var city = get(['locality']) || get(['sublocality_level_1']);
-    var state = get(['administrative_area_level_1']);
-    var zip = get(['postal_code']);
+    var route     = get(['route']);
+    var unit      = get(['subpremise']);
+    var city      = get(['locality']) || get(['sublocality_level_1']);
+    var state     = get(['administrative_area_level_1']);
+    var zip       = get(['postal_code']);
     if (!streetNum || !route || !city || !state || !zip) return null;
     var street = unit ? streetNum + ' ' + route + ' ' + unit : streetNum + ' ' + route;
     return street + ', ' + city + ', ' + state + ' ' + zip;
   }
+
+  // localStorage persistence
+  var LS_KEY  = 'instapad_vi_form';
+  var LS_DONE = 'instapad_vi_submitted';
+
+  function saveForm() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        name:    document.getElementById('seller-name').value,
+        phone:   document.getElementById('phone').value,
+        email:   document.getElementById('email').value,
+        address: document.getElementById('address-input').value,
+        addrFmt: document.getElementById('address-formatted').value,
+        link:    document.getElementById('album-link').value,
+        notes:   document.getElementById('notes').value
+      }));
+    } catch(e) {}
+  }
+
+  function restoreForm() {
+    if (localStorage.getItem(LS_DONE) === 'true') { showSuccess(); return; }
+    try {
+      var d = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+      if (!d) return;
+      if (d.name)    document.getElementById('seller-name').value = d.name;
+      if (d.phone)   document.getElementById('phone').value = d.phone;
+      if (d.email)   document.getElementById('email').value = d.email;
+      if (d.address) document.getElementById('address-input').value = d.address;
+      if (d.addrFmt) {
+        document.getElementById('address-formatted').value = d.addrFmt;
+        document.getElementById('address-hint').style.display = 'block';
+        document.getElementById('address-hint-default').style.display = 'none';
+        addressConfirmed = true;
+      }
+      if (d.link)  document.getElementById('album-link').value = d.link;
+      if (d.notes) document.getElementById('notes').value = d.notes;
+    } catch(e) {}
+  }
+
+  function showSuccess() {
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success-state').style.display = 'block';
+  }
+
+  function updateSubmitBtn() {
+    var total   = document.querySelectorAll('.confirm-item').length;
+    var checked = document.querySelectorAll('.confirm-item.checked').length;
+    var btn = document.querySelector('.submit-btn');
+    btn.disabled = (checked < total);
+    btn.title = (checked < total) ? 'Please check all ' + total + ' boxes above before submitting' : '';
+  }
+
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+    var box = el.querySelector('.confirm-checkbox');
+    box.textContent = el.classList.contains('checked') ? '\u2713' : '';
+    updateSubmitBtn();
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('btn-' + tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function handleSubmit() {
+    var name    = document.getElementById('seller-name').value.trim();
+    var phone   = document.getElementById('phone').value.trim();
+    var email   = document.getElementById('email').value.trim();
+    var address = document.getElementById('address-formatted').value.trim()
+                  || document.getElementById('address-input').value.trim();
+    var link    = document.getElementById('album-link').value.trim();
+    var notes   = document.getElementById('notes').value.trim();
+    var total   = document.querySelectorAll('.confirm-item').length;
+    var checked = document.querySelectorAll('.confirm-item.checked').length;
+
+    if (!name)   { alert('Please enter your full name.'); return; }
+    if (!phone || phone.replace(/[^0-9]/g,'').length < 10) { alert('Please enter a valid 10-digit phone number.'); return; }
+    if (!email || email.indexOf('@') === -1) { alert('Please enter a valid email address.'); return; }
+    if (!address) { alert('Please select your property address from the dropdown.'); return; }
+    if (!addressConfirmed) {
+      if (!confirm('We could not verify your address \u2014 it may not match our system exactly. Proceed anyway?')) return;
+    }
+    if (!link || link.indexOf('http') !== 0) { alert('Please paste a valid Google Photos album link.'); return; }
+    if (checked < total) { alert('Please check all ' + total + ' boxes before submitting.'); return; }
+
+    var btn = document.querySelector('.submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    var payload = {
+      seller_name:      name,
+      phone:            phone,
+      email:            email,
+      property_address: address,
+      album_link:       link,
+      notes:            notes || '',
+      submitted_at:     new Date().toISOString()
+    };
+
+    try {
+      var formData = new URLSearchParams();
+      Object.keys(payload).forEach(function(k) { formData.append(k, payload[k]); });
+      await fetch('https://hooks.zapier.com/hooks/catch/11371221/un48lx2/', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+      localStorage.setItem(LS_DONE, 'true');
+      localStorage.removeItem(LS_KEY);
+      showSuccess();
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'Submit Photo Album \u2192';
+      alert('Something went wrong \u2014 please try again or email contract@instapadoffer.com');
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     var phoneInput = document.getElementById('phone');
     if (phoneInput) {
@@ -414,66 +538,16 @@
         if (digits.length >= 4) formatted += ') ' + digits.slice(3, 6);
         if (digits.length >= 7) formatted += '-' + digits.slice(6, 10);
         e.target.value = formatted;
+        saveForm();
       });
     }
+    ['seller-name','email','album-link','notes'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', saveForm);
+    });
+    restoreForm();
+    updateSubmitBtn();
   });
-  function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    document.getElementById('tab-' + tab).classList.add('active');
-    document.getElementById('btn-' + tab).classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  function toggleCheck(el) {
-    el.classList.toggle('checked');
-    var box = el.querySelector('.confirm-checkbox');
-    box.textContent = el.classList.contains('checked') ? '✓' : '';
-  }
-  async function handleSubmit() {
-    var name = document.getElementById('seller-name').value.trim();
-    var phone = document.getElementById('phone').value.trim();
-    var email = document.getElementById('email').value.trim();
-    var address = document.getElementById('address-formatted').value.trim() || document.getElementById('address-input').value.trim();
-    var link = document.getElementById('album-link').value.trim();
-    var notes = document.getElementById('notes').value.trim();
-    if (!name) { alert('Please enter your full name.'); return; }
-    if (!phone || phone.replace(/[^0-9]/g, '').length < 10) { alert('Please enter a valid 10-digit phone number.'); return; }
-    if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) { alert('Please enter a valid email address.'); return; }
-    if (!address) { alert('Please select your property address from the dropdown.'); return; }
-    if (!addressConfirmed) {
-      var proceed = confirm('We could not verify your address with Google Maps — it may not match Zillow exactly. Proceed anyway?');
-      if (!proceed) return;
-    }
-    if (!link || link.indexOf('http') !== 0) { alert('Please paste a valid Google Photos album link.'); return; }
-    var btn = document.querySelector('.submit-btn');
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
-    var payload = {
-      seller_name: name,
-      phone: phone,
-      email: email,
-      property_address: address,
-      album_link: link,
-      notes: notes || '',
-      submitted_at: new Date().toISOString()
-    };
-    try {
-      var formData = new URLSearchParams();
-      Object.keys(payload).forEach(function(k) { formData.append(k, payload[k]); });
-      await fetch('https://hooks.zapier.com/hooks/catch/11371221/un48lx2/', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString()
-      });
-      document.getElementById('form-wrap').style.display = 'none';
-      document.getElementById('success-state').style.display = 'block';
-    } catch(err) {
-      btn.disabled = false;
-      btn.textContent = 'Submit Photo Album →';
-      alert('Something went wrong — please try again or email contract@instapadoffer.com');
-    }
-  }
 </script>
 </body>
 </html>
